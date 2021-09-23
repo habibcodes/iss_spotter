@@ -24,12 +24,11 @@ const fetchMyIP = (callback) => {
     
     // if non-200 status, assume server error
     if (response.statusCode !== 200) {
-      const msg = `Status Code ${response.statusCode} when fetching IP. Response: ${body}`;
-      callback(Error(msg), null);
+      callback(Error(`Status Code ${response.statusCode} when fetching IP. Response: ${body}`), null);
       return;
     }
-    console.log('statusCode:', response && response.statusCode); // Print the response status code if a response was received
-    console.log('body:', body); // Print the HTML for the Google homepage.
+    /* console.log('statusCode:', response && response.statusCode); // Print the response status code if a response was received
+    console.log('body:', body); // Print the HTML for the Google homepage. */
 
     const ip = JSON.parse(body).ip;
     // send as callback
@@ -40,7 +39,7 @@ const fetchMyIP = (callback) => {
 
 // fetch geo coordinates (Lat and Long) for our IP
 const fetchCoordsByIP = (ip, callback) => {
-  request('https://freegeoip.app/json/99.232.103.31', (error, response, body) => {
+  request(`https://freegeoip.app/json/${ip}`, (error, response, body) => {
     // non status errors
     if (error) {
       callback(error, null);
@@ -48,8 +47,7 @@ const fetchCoordsByIP = (ip, callback) => {
     }
     // if non-200 status, assume server error
     if (response.statusCode !== 200) {
-      const msg = `Status Code ${response.statusCode} when fetching coordinats for IP. Response: ${body}`;
-      callback(Error(msg), null);
+      callback(Error(`Status Code ${response.statusCode} when fetching coordinats for IP. Response: ${body}`), null);
       return;
     }
     
@@ -60,12 +58,32 @@ const fetchCoordsByIP = (ip, callback) => {
   });
 };
 
-
-
 // fetch next ISS flyovers for our geo coordinates
+const fetchISSFlyOverTimes = (coords, callback) => {
+  const url = `https://iss-pass.herokuapp.com/json/?lat=${coords.latitude}&lon=${coords.longitude}`;
+  
+  request(url, (error, response, body) => {
+    // non status errors
+    if (error) {
+      callback(error, null);
+      return;
+    }
+    // if non-200 status, assume server error
+    if (response.statusCode !== 200) {
+      callback(Error(`Status Code ${response.statusCode} when fetching flyover times. Response: ${body}`), null);
+      return;
+    }
+      
+    const flyOverData = JSON.parse(body).response;
+    // send fetched via callback
+    callback(null, flyOverData);
+  });
+
+};
 
 
 module.exports = {
   fetchMyIP,
   fetchCoordsByIP,
+  fetchISSFlyOverTimes
 };
